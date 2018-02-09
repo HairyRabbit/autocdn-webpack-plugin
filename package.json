@@ -5,11 +5,12 @@
   "main": "lib/index.js",
   "scripts": {
     "start": "yarn build",
-    "prepublish": "yarn test && yarn build:prod",
+    "prepublish": "yarn test:coverage && yarn test:type && yarn build:prod && yarn build:type",
     "build": "cross-env NODE_ENV=development yarn rollup -c",
     "build:prod": "cross-env NODE_ENV=production yarn rollup -c",
     "build:type": "flow gen-flow-files lib/index.js > dist/autocdn-webpack-plugin.js.flow",
     "test": "jest",
+    "test:spec": "yarn build && bash specs/test.sh",
     "test:coverage": "yarn test --coverage",
     "test:type": "flow check"
   },
@@ -38,5 +39,9 @@
     "rollup-plugin-json": "^2.3.0",
     "rollup-plugin-node-resolve": "^3.0.2",
     "webpack": "^3.10.0"
+  },
+  "dependencies": {
+    "@rabbitcc/promise-extra": "^0.0.8",
+    "@rabbitcc/umd-extra": "^0.0.8"
   }
 }
