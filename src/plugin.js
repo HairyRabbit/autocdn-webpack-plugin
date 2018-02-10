@@ -16,6 +16,7 @@ import type { Compiler } from 'webpack/lib/Compiler'
 import type { Options } from './'
 
 export default class AutocdnWebpackPlugin {
+  options: Options;
   constructor(options: Options) {
     this.options = {
       ...DefaultOptions,
@@ -25,6 +26,9 @@ export default class AutocdnWebpackPlugin {
   apply(compiler: Compiler): void {
     const options = this.options
     const context = compiler.context
+
+    const collects = {}
+    const presets = Object.keys(options.cdn)
 
     /**
      * resolve dependencies of package.json
@@ -37,22 +41,45 @@ export default class AutocdnWebpackPlugin {
       throw new Error(err)
     }
     const deps = pkg.dependencies
+    const include = Array.isArray(options.include) ? options.include : [options.include]
+    const exclude = Array.isArray(options.exclude) ? options.exclude : [options.exclude]
+    /**
+     * include
+     *
+     * 1. find version from package.json
+     * 2. find package version from node_modules
+     */
+    const allDeps = {
+        ...pkg.devDependencies,
+        ...pkg.peerDependencies,
+        ...deps
+    }
+    include.forEach(dep => {
+      if(allDeps[dep]) {
+        deps[dep] = allDeps[dep]
+      } else {
+        try {
+          const version = require(`${dep}/package.json`).version
+          deps[dep] = version
+        } catch(err) {
+          throw new Error(`Can't find module ${dep} from include options.`)
+        }
+      }
+    })
 
     /**
      * collect deps
      */
-    const collects = {}
-    const ignored = Object.keys(options.cdn)
     Object.keys(deps).forEach(key => {
-      if(~ignored.indexOf(key)) {
+      if(~presets.indexOf(key) || ~exclude.indexOf(key)) {
         return
       }
       const name = key
       const version = deps[key]
-      const filePath = exportPath(name, false, context)
+      const filePath = exportPath(name, false, context, false)
             .catch(err => null)
             .then(filePath => filePath && path.normalize(filePath))
-      const globalName = exportName(name, context)
+      const globalName = exportName(name, context, false)
             .catch(err => null)
       collects[name] = PromiseMap({
         name,
@@ -97,11 +124,9 @@ export default class AutocdnWebpackPlugin {
                 const isCss = '.css' === path.extname(item.filePath)
                 if(isCss) {
                   css.push(item)
-                  continue
                 } else {
                   if(!item.globalName) {
                     noName.push(item)
-                    continue
                   } else {
                     js.push(item)
                   }
@@ -110,21 +135,39 @@ export default class AutocdnWebpackPlugin {
             }
 
             /**
+             * add presets to collects
+             */
+            presets.forEach(preset => {
+              const item = options.cdn[preset]
+              if(item.url) {
+                pushToArray(item.url, preset, js)
+              } else {
+                if(item.css) {
+                  pushToArray(item.css, preset, css)
+                }
+
+                if(item.js) {
+                  pushToArray(item.js, preset, js)
+                }
+              }
+            })
+
+            /**
              * report result
              */
             if(options.report) {
               console.log('[AutoCDN] report:\n')
 
               if(noPath.length) {
-                console.log(`This below packages umd bundle file not found:\n\n${print(noPath)}\n`)
+                console.log(`The umd bundle file not found:\n\n${print(noPath)}\n`)
               }
 
               if(noName.length) {
-                console.log(`This below packages global name not resolved:\n\n${print(noName)}\n`)
+                console.log(`The global name not resolved:\n\n${print(noName)}\n`)
               }
 
               if(noUrl.length) {
-                console.log(`This below packages unpkg.com CDN url not resolved:\n\n${print(noUrl)}\n`)
+                console.log(`The unpkg.com CDN url not resolved:\n\n${print(noUrl)}\n`)
               }
 
               if(css.length) {
@@ -164,6 +207,23 @@ export default class AutocdnWebpackPlugin {
             callback(null, data)
           })
           .catch(err => callback(err))
+      })
+    })
+  }
+}
+
+
+function pushToArray(list: any,
+                     name: string,
+                     arr: Array<Object>): void {
+  if(list) {
+    const _url = list
+    const urls = Array.isArray(_url) ? _url : [_url]
+    const len = urls.length
+    urls.forEach((url, idx) => {
+      arr.push({
+        name: len === 1 ? name : (name + '@' + idx),
+        url
       })
     })
   }

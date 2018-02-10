@@ -21,7 +21,7 @@ export type Options = {
   cdn: {
     [name: string]: CDN
   },
-  exculde: string | Array<string>,
+  exclude: string | Array<string>,
   include: string | Array<string>,
   report: boolean
 }
