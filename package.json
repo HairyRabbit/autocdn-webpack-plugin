@@ -10,7 +10,7 @@
     "build:prod": "cross-env NODE_ENV=production yarn rollup -c",
     "build:type": "flow gen-flow-files lib/index.js > dist/autocdn-webpack-plugin.js.flow",
     "test": "jest",
-    "test:spec": "yarn build && bash specs/test.sh",
+    "test:spec": "yarn build && sh specs/test.sh",
     "test:coverage": "yarn test --coverage",
     "test:type": "flow check"
   },
@@ -42,6 +42,6 @@
   },
   "dependencies": {
     "@rabbitcc/promise-extra": "^0.0.8",
-    "@rabbitcc/umd-extra": "^0.0.8"
+    "@rabbitcc/umd-extra": "0.0.12"
   }
 }

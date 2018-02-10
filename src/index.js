@@ -14,14 +14,15 @@
  */
 
 type CDN =
-  | string
-  | Array<string>
-  | { css: Array<string>, js: Array<string> }
+  | { url: string | Array<string>, name: string }
+  | { css: string | Array<string>, js: string | Array<string>, name: string }
 
 export type Options = {
   cdn: {
     [name: string]: CDN
-  }
+  },
+  exculde: string | Array<string>,
+  include: string | Array<string>
 }
 
 export { default as default } from './plugin'

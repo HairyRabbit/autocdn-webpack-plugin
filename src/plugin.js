@@ -48,13 +48,13 @@ export default class AutocdnWebpackPlugin {
       const name = key
       const version = deps[key]
       const filePath = exportPath(name, false, context)
-      // const globalName = exportName(name, context)
-      collects[name] = {
+      const globalName = exportName(name, context).catch(err => console.error(err))
+      collects[name] = PromiseMap({
         name,
         version,
-        filePath
-        // globalName
-      }
+        filePath,
+        globalName
+      })
     })
 
     compiler.plugin('compilation', compilation => {
@@ -68,6 +68,10 @@ export default class AutocdnWebpackPlugin {
 
         PromiseMap(collects)
           .then(result => {
+            for(let key in result) {
+              const filePath = result[key].filePath
+              result[key].filePath = path.normalize(filePath)
+            }
             console.log(result)
           })
           .then(() => {
