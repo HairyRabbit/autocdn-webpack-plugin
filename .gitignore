@@ -60,5 +60,5 @@ typings/
 # Project
 lib
 index.html
-main.js
-specs/**/**/yarn.*
+specs/**/main.js
+specs/**/yarn.*
