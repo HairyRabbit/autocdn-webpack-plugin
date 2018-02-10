@@ -1,5 +1,6 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const HtmlWebpackTemplate = require('html-webpack-template')
 const AutoCDNWebpackPlugin = require('../../lib').default
 
 module.exports = {
@@ -9,6 +10,9 @@ module.exports = {
   },
   plugins: [
     new AutoCDNWebpackPlugin(),
-    new HtmlWebpackPlugin()
+    new HtmlWebpackPlugin({
+      template: HtmlWebpackTemplate,
+      inject: false
+    })
   ]
 }

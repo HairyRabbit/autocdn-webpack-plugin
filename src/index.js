@@ -22,7 +22,8 @@ export type Options = {
     [name: string]: CDN
   },
   exculde: string | Array<string>,
-  include: string | Array<string>
+  include: string | Array<string>,
+  report: boolean
 }
 
 export { default as default } from './plugin'

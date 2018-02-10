@@ -9,5 +9,6 @@ import type { Options } from './'
 export default {
   cdn: {},
   exclude: [],
-  include: []
+  include: [],
+  report: true
 }

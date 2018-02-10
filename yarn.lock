@@ -479,9 +479,9 @@
   version "0.0.8"
   resolved "https://registry.yarnpkg.com/@rabbitcc/promise-extra/-/promise-extra-0.0.8.tgz#bc5217baef3bc804edef912983ddb0560521bcff"
 
-"@rabbitcc/umd-extra@0.0.12":
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/@rabbitcc/umd-extra/-/umd-extra-0.0.12.tgz#5627f018778f7ab4b36d2e8528d475a705c481f6"
+"@rabbitcc/umd-extra@^0.0.15":
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/@rabbitcc/umd-extra/-/umd-extra-0.0.15.tgz#a42cf3f71f114cb2dfaa2f0c4c821a9a8309f23a"
   dependencies:
     fs-extra "^4.0.2"
     glob "^7.1.2"
