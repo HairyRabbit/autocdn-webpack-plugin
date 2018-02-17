@@ -6,14 +6,25 @@
 
 import fs from 'fs'
 import path from 'path'
-import webpack from 'webpack'
 import { exportName, exportPath } from '@rabbitcc/umd-extra'
 import { PromiseMap } from '@rabbitcc/promise-extra'
 import DefaultOptions from './defaultOptions'
+import resolvePkg from './pkgConfigResolver'
 import resolve from './cdnUrlResolver'
-import print from './pkgPrettyPrint'
+import report from './resultReporter'
+import apply from './arrayOptionApply'
+import applyExternalsPlugin from './externalsPluginApply'
+import pushToArray from './pushToArray'
 import type { Compiler } from 'webpack/lib/Compiler'
 import type { Options } from './'
+
+export type Results = {
+  css: Array<Model>,
+  js: Array<Model>,
+  noPath: Array<Model>,
+  noName: Array<Model>,
+  noUrl: Array<Model>
+}
 
 export default class AutocdnWebpackPlugin {
   options: Options;
@@ -34,15 +45,10 @@ export default class AutocdnWebpackPlugin {
      * resolve dependencies of package.json
      */
     const pkgPath = path.resolve(context, 'package.json')
-    let pkg
-    try {
-      pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
-    } catch(err) {
-      throw new Error(err)
-    }
+    const pkg = resolvePkg(context)
     const deps = pkg.dependencies
-    const include = Array.isArray(options.include) ? options.include : [options.include]
-    const exclude = Array.isArray(options.exclude) ? options.exclude : [options.exclude]
+    const include = apply(options.include)
+    const exclude = apply(options.exclude)
     /**
      * include
      *
@@ -89,97 +95,101 @@ export default class AutocdnWebpackPlugin {
       })
     })
 
+
+    let results = {}
+
+    compiler.plugin('before-run', (compiler, callback) => {
+      PromiseMap(collects)
+        .then(result => {
+          for(let key in result) {
+            const item = result[key]
+            result[key] = PromiseMap({
+              ...item,
+              url: item.filePath && resolve(
+                item.name,
+                item.version,
+                path.relative(path.resolve(
+                  context,
+                  'node_modules',
+                  item.name
+                ), item.filePath)
+              ).catch(err => null)
+            })
+          }
+          return PromiseMap(result)
+        })
+        .then(result => {
+          const css = [], js = [], noPath = [], noName = [], noUrl = []
+          for(let key in result) {
+            const item = result[key]
+            if(!item.filePath) {
+              noPath.push(item)
+              continue
+            } else if(!item.url) {
+              noUrl.push(item)
+              continue
+            } else {
+              const isCss = '.css' === path.extname(item.filePath)
+              if(isCss) {
+                css.push(item)
+              } else {
+                if(!item.globalName) {
+                  noName.push(item)
+                } else {
+                  js.push(item)
+                }
+              }
+            }
+          }
+
+          /**
+           * add presets to collects
+           */
+          presets.forEach(preset => {
+            const item = options.cdn[preset]
+            if(item.url) {
+              pushToArray(item.url, preset, js)
+            } else {
+              if(item.css) {
+                pushToArray(item.css, preset, css)
+              }
+
+              if(item.js) {
+                pushToArray(item.js, preset, js)
+              }
+            }
+          })
+
+          results = {
+            css,
+            js,
+            noPath,
+            noName,
+            noUrl
+          }
+
+          /**
+           * report result
+           */
+          if(options.report) {
+            report(results)
+          }
+
+          /**
+           * apply webpack.ExternalsPlugin plugin
+           */
+          applyExternalsPlugin(compiler, results)
+
+          callback()
+          return
+        })
+        .catch(err => callback(err))
+    })
+
     compiler.plugin('compilation', compilation => {
       compilation.plugin('html-webpack-plugin-before-html-generation', (data, callback) => {
-        PromiseMap(collects)
-          .then(result => {
-            for(let key in result) {
-              const item = result[key]
-              result[key] = PromiseMap({
-                ...item,
-                url: item.filePath && resolve(
-                  item.name,
-                  item.version,
-                  path.relative(path.resolve(
-                    context,
-                    'node_modules',
-                    item.name
-                  ), item.filePath)
-                ).catch(err => null)
-              })
-            }
-            return PromiseMap(result)
-          })
-          .then(result => {
-            const css = [], js = [], noPath = [], noName = [], noUrl = []
-            for(let key in result) {
-              const item = result[key]
-              if(!item.filePath) {
-                noPath.push(item)
-                continue
-              } else if(!item.url) {
-                noUrl.push(item)
-                continue
-              } else {
-                const isCss = '.css' === path.extname(item.filePath)
-                if(isCss) {
-                  css.push(item)
-                } else {
-                  if(!item.globalName) {
-                    noName.push(item)
-                  } else {
-                    js.push(item)
-                  }
-                }
-              }
-            }
-
-            /**
-             * add presets to collects
-             */
-            presets.forEach(preset => {
-              const item = options.cdn[preset]
-              if(item.url) {
-                pushToArray(item.url, preset, js)
-              } else {
-                if(item.css) {
-                  pushToArray(item.css, preset, css)
-                }
-
-                if(item.js) {
-                  pushToArray(item.js, preset, js)
-                }
-              }
-            })
-
-            /**
-             * report result
-             */
-            if(options.report) {
-              console.log('[AutoCDN] report:\n')
-
-              if(noPath.length) {
-                console.log(`The umd bundle file not found:\n\n${print(noPath)}\n`)
-              }
-
-              if(noName.length) {
-                console.log(`The global name not resolved:\n\n${print(noName)}\n`)
-              }
-
-              if(noUrl.length) {
-                console.log(`The unpkg.com CDN url not resolved:\n\n${print(noUrl)}\n`)
-              }
-
-              if(css.length) {
-                console.log(`Add packages as links:\n\n${print(css)}\n`)
-              }
-
-              if(js.length) {
-                console.log(`Add packages as scripts:\n\n${print(js)}\n`)
-              }
-            }
-
-
+        PromiseMap(results)
+          .then(({ css, js }) => {
             /**
              * inject css packages
              */
@@ -207,23 +217,6 @@ export default class AutocdnWebpackPlugin {
             callback(null, data)
           })
           .catch(err => callback(err))
-      })
-    })
-  }
-}
-
-
-function pushToArray(list: any,
-                     name: string,
-                     arr: Array<Object>): void {
-  if(list) {
-    const _url = list
-    const urls = Array.isArray(_url) ? _url : [_url]
-    const len = urls.length
-    urls.forEach((url, idx) => {
-      arr.push({
-        name: len === 1 ? name : (name + '@' + idx),
-        url
       })
     })
   }

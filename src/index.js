@@ -13,16 +13,28 @@
  * @flow
  */
 
+type Name = string
+type Url = string
+type GlobalName = string
+
 type CDN =
-  | { url: string | Array<string>, name: string }
-  | { css: string | Array<string>, js: string | Array<string>, name: string }
+  | { url: Url | Array<Url>, name: GlobalName }
+  | { css: Url | Array<Url>, js: Url | Array<Url>, name: GlobalName }
+
+export type Model = {
+  name: Name,
+  version: string,
+  filePath: string,
+  globalName: GlobalName,
+  url: Url
+}
 
 export type Options = {
   cdn: {
     [name: string]: CDN
   },
-  exclude: string | Array<string>,
-  include: string | Array<string>,
+  exclude: Name | Array<Name>,
+  include: Name | Array<Name>,
   report: boolean
 }
 
