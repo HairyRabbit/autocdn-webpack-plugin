@@ -5,8 +5,9 @@
  */
 
 import apply from './arrayOptionApply'
+import type { Model } from './'
 
-export default function pushToArray(list: any,
+export default function pushToArray(list: *,
                                     name: string,
                                     arr: Array<Object>): void {
   if(list) {

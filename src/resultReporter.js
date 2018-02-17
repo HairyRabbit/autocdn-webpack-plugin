@@ -7,7 +7,15 @@
 import print from './pkgPrettyPrint'
 import type { Results } from './plugin'
 
-export default function reportResult(results: Results): void {
+export const DefaultResults: Results = {
+  js: [],
+  css: [],
+  noName: [],
+  noPath: [],
+  noUrl: []
+}
+
+export default function reportResult(results: Results = DefaultResults): void {
   const { js, css, noName, noPath, noUrl } = results
 
   console.log('[AutoCDN] report:\n')

@@ -18,8 +18,8 @@ type Url = string
 type GlobalName = string
 
 type CDN =
-  | { url: Url | Array<Url>, name: GlobalName }
-  | { css: Url | Array<Url>, js: Url | Array<Url>, name: GlobalName }
+  | {| url: Url | Array<Url>, name: GlobalName |}
+  | {| css: Url | Array<Url>, js: Url | Array<Url>, name: GlobalName |}
 
 export type Model = {
   name: Name,

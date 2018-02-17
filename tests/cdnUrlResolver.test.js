@@ -9,7 +9,7 @@ beforeEach(() => {
 })
 
 test('should resolve filePath', () => {
-  return expect(resolve('react', '^16.3.0-alpha.0', 'umd/react.production.min.js')).resolves.toBe('https://unpkg.com/react@16.3.0-alpha.0/umd/react.production.min.js')
+  return expect(resolve('react', '^16.3.0-alpha.0', 'umd/react.production.min.js')).resolves.toBe('https://unpkg.com/react@16.3.0-alpha.1/umd/react.production.min.js')
 })
 
 test('should resolve filePath by fuzzy version number', () => {

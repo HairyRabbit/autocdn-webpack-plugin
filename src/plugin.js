@@ -16,7 +16,7 @@ import apply from './arrayOptionApply'
 import applyExternalsPlugin from './externalsPluginApply'
 import pushToArray from './pushToArray'
 import type { Compiler } from 'webpack/lib/Compiler'
-import type { Options } from './'
+import type { Options, Model } from './'
 
 export type Results = {
   css: Array<Model>,
