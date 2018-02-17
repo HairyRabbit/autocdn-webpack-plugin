@@ -10,7 +10,7 @@
     "clean:type": "rm -rf flow-typed",
     "build": "yarn clean && cross-env NODE_ENV=development yarn rollup -c",
     "build:prod": "yarn clean && cross-env NODE_ENV=production yarn rollup -c",
-    "build:type": "yarn clean:type && flow gen-flow-files src/index.js > flow-typed/modules.js",
+    "build:type": "yarn clean:type && mkdir flow-typed && flow gen-flow-files src/index.js > flow-typed/modules.js",
     "test": "jest",
     "test:spec": "yarn build && bash specs/test.sh",
     "test:co": "yarn test --coverage",

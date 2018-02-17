@@ -29,12 +29,12 @@ type PackageName = string
 type GlobalExportName = string
 
 type CDN =
-  | { url: string | Array<string>, name: GlobalExportName }
-  | {
+  | {| url: string | Array<string>, name: GlobalExportName |}
+  | {|
       css: string | Array<string>,
       js: string | Array<string>,
       name: GlobalExportName
-    }
+    |}
 
 type Options = {
   cdn: {                             // preset cdn by yourself
