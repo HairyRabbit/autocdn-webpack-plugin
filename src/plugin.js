@@ -97,7 +97,7 @@ export default class AutocdnWebpackPlugin {
               const item = result[key]
               result[key] = PromiseMap({
                 ...item,
-                url: resolve(
+                url: item.filePath && resolve(
                   item.name,
                   item.version,
                   path.relative(path.resolve(

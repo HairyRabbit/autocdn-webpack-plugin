@@ -1,0 +1,13 @@
+{
+  "name": "test",
+  "version": "0.0.0",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "html-webpack-plugin": "^2.30.1",
+    "html-webpack-template": "^6.1.0",
+    "webpack": "^3.10.0"
+  },
+  "dependencies": {
+    "suitcss-base": "^4.0.0"
+  }
+}

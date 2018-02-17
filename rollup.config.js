@@ -22,14 +22,14 @@ export default [{
       exports: 'named'
     },
     plugins: [].concat(
-      resolve({
-        preferBuiltins: true
-      }),
+      resolve(),
       babel({ exclude: 'node_modules/**' }),
       json({ exclude: 'node_modules/**' }),
       commonjs()
     ),
     external: [].concat(
+      'fs',
+      'path',
       Object.keys(Object.assign(
         {},
         pkg.dependencies,
